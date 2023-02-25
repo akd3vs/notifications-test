@@ -1,0 +1,48 @@
+version: "3.3"
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    volumes:
+      - /app/node_modules # Inside the container, don't try to override this folder, just leave as is
+    restart: on-failure
+    container_name: client
+  backend:
+    depends_on:
+      - db
+    build:
+#      context: ./backend
+      dockerfile: ./backend/Dockerfile
+    ports:
+      - '3001:3001'
+    restart: on-failure
+    container_name: backend
+    volumes:
+      - /app/node_modules # Inside the container, don't try to override this folder, just leave as is
+#    env_file:
+#      - ./env/backend.env
+  db:
+    image: mysql:5.7
+    restart: always
+    container_name: db
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_USER_PSWD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PSWD}
+    ports:
+      # <Port exposed> : < MySQL Port running inside container>
+      - '3306:3306'
+    expose:
+      # Opens port 3306 on the container
+      - '3306'
+      # Where our data will be persisted
+    volumes:
+      - my-db:/var/lib/mysql
+      - ./db:/docker-entrypoint-initdb.d
+# Names our volume
+volumes:
+  my-db:
